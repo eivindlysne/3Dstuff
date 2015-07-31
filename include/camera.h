@@ -29,9 +29,19 @@ Camera* Camera_init(
 
 void Camera_destroy(Camera* const camera);
 
-void Camera_look_at();
+void Camera_look_at(Camera* const camera, vec3 const position, vec3 const forward);
 
-void Camera_offset_orientation(Camera* const camera, float pitch, float yaw);
+void Camera_rotate(Camera* const camera, float angle, vec3 const axis);
+
+void Camera_offset_orientation(Camera* const camera, float yaw, float pitch);
+
+void Camera_relative_directions(
+    Camera* const camera,
+    vec3 forward,
+    vec3 backward,
+    vec3 left,
+    vec3 right
+);
 
 void Camera_view_projection(Camera* const camera, mat4x4 matrix);
 

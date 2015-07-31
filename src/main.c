@@ -112,6 +112,14 @@ int main(int argc, char const *argv[]) {
         0.01f,
         1000.0f
     );
+    Camera_look_at(camera, (vec3) {0,0,0}, G_BACKWARD);
+    printf("%f, %f, %f, %f\n",
+    camera->transform.orientation[0],
+    camera->transform.orientation[1],
+    camera->transform.orientation[2],
+    camera->transform.orientation[3]
+    );
+
     Mesh* test_mesh = init_test_mesh();
     Texture* test_texture = init_test_texture();
     //Level* level = Level_init(NULL);
@@ -130,7 +138,7 @@ int main(int argc, char const *argv[]) {
         float t = SDL_GetTicks();
 
         // Update stuff
-        Input_update(input, camera, &running);
+        Input_update(input, display, camera, &running);
         Skybox_update(skybox, camera);
 
         // Draw stuff
@@ -143,10 +151,10 @@ int main(int argc, char const *argv[]) {
 
         Shader_bind(basic_shader);
         Shader_set_uniform_mat4x4(basic_shader, bfromcstr("projection"), projection);
-        float angle = toRadians(t * 0.2f);
-        vec3 axis;
-        vec3_norm(axis, (vec3) {1, 1, 1});
-        quat_rotate(transform.orientation, angle, axis);
+        // float angle = toRadians(t * 0.2f);
+        // vec3 axis;
+        // vec3_norm(axis, (vec3) {1, 1, 1});
+        // quat_rotate(transform.orientation, angle, axis);
 
         Shader_set_transform(basic_shader, &transform);
 

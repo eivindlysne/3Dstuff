@@ -15,7 +15,6 @@ Display* Display_init(char* title, int width, int height) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
     //SDL_GL_SetSwapInterval(0); // vsync off if driver allows
-    //SDL_SetRelativeMouseMode(true); // grab mouse
 
     SDL_Window* window = SDL_CreateWindow(
         title,
@@ -23,7 +22,17 @@ Display* Display_init(char* title, int width, int height) {
         SDL_WINDOWPOS_CENTERED,
         width,
         height,
-        SDL_WINDOW_OPENGL);
+        SDL_WINDOW_OPENGL
+    );
+
+    //SDL_SetRelativeMouseMode(true); // grab mouse
+    //SDL_ShowCursor(SDL_DISABLE);
+
+    SDL_WarpMouseInWindow(
+        window,
+        (float) width / 2.f,
+        (float) height / 2.f
+    );
 
     SDL_GLContext context = SDL_GL_CreateContext(window);
 

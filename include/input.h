@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 
+#include "display.h"
 #include "camera.h"
 
 typedef struct {
@@ -18,6 +19,11 @@ Input* Input_init();
 
 void Input_destroy(Input* input);
 
-void Input_update(Input* const input, Camera* const camera, bool* const running);
+void Input_update(
+    Input* const input,
+    Display* const display,
+    Camera* const camera,
+    bool* const running
+);
 
 #endif
