@@ -51,10 +51,6 @@ void Input_update(
                 case SDLK_RIGHT: case SDLK_d:
                     input->right_key = true;
                     break;
-                case SDLK_q:
-                    break;
-                case SDLK_e:
-                    break;
                 default: break;
             }
         } else if (event.type == SDL_KEYUP) {
@@ -73,30 +69,25 @@ void Input_update(
                     break;
                 default: break;
             }
-        } else if (event.type == SDL_MOUSEMOTION) {
-
         }
     }
 
-    // float const mouse_sensitivity = 0.05f;
-    // float const mid_x = 960.f / 2.f;
-    // float const mid_y = 540.f / 2.f;
-    // int mouse_x, mouse_y;
-    // SDL_GetMouseState(&mouse_x, &mouse_y);
-    //
-    // Camera_offset_orientation(
-    //     camera,
-    //     mouse_sensitivity * toRadians((mid_x - (float) mouse_x)),
-    //     mouse_sensitivity * toRadians((mid_y - (float) mouse_y))
-    // );
-    // printf("%f, %f, %f, %f\n",
-    // camera->transform.orientation[0],
-    // camera->transform.orientation[1],
-    // camera->transform.orientation[2],
-    // camera->transform.orientation[3]
-    // );
+    const float mouse_sensitivity = 0.05f;
+    const float center_x = 960.f / 2.f;
+    const float center_y = 540.f / 2.f;
 
-    //SDL_WarpMouseInWindow(display->window, 0, 0);
+    int mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+    float mouse_dx = mouse_x - center_x;
+    float mouse_dy = mouse_y - center_y;
+
+    Camera_offset_orientation(
+        camera,
+        mouse_sensitivity * toRadians((-mouse_dx)),
+        mouse_sensitivity * toRadians((-mouse_dy))
+    );
+
+    //SDL_WarpMouseInWindow(display->window, center_x, center_y);
 
     // TODO: Move input "handling"
     // TODO: Delta time

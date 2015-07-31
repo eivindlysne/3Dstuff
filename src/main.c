@@ -112,13 +112,7 @@ int main(int argc, char const *argv[]) {
         0.01f,
         1000.0f
     );
-    Camera_look_at(camera, (vec3) {0,0,0}, G_BACKWARD);
-    printf("%f, %f, %f, %f\n",
-    camera->transform.orientation[0],
-    camera->transform.orientation[1],
-    camera->transform.orientation[2],
-    camera->transform.orientation[3]
-    );
+    //Camera_look_at(camera, (vec3) {0,0,0}, G_FORWARD); Does not work
 
     Mesh* test_mesh = init_test_mesh();
     Texture* test_texture = init_test_texture();

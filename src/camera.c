@@ -29,33 +29,29 @@ void Camera_destroy(Camera* const camera) {
 // TODO: Might need
 void Camera_look_at(Camera* const camera, vec3 const position, vec3 const forward) {
 
-    float const similar = 0.001f;
-
-    vec3 position_diff;
-    vec3_sub(position_diff, position, camera->transform.position);
-
-    if (vec3_len(position_diff) < similar)
-        return; // You cannot look at where you are!
-
-    vec3 f;
-    vec3_norm(f, position_diff);
-    float cosTheta = vec3_mul_inner(forward, f); // dot
-
-    float angle = acos(cosTheta);
-    vec3 axis;
-    vec3_mul_cross(axis, forward, f);
-    vec3_norm(axis, axis);
-
-    quat q; //quat_identity(q);
-    quat_rotate(q, angle, axis);
-    camera->transform.orientation[0] = q[0];
-    camera->transform.orientation[1] = q[1];
-    camera->transform.orientation[2] = q[2];
-    camera->transform.orientation[3] = q[3];
-}
-
-void Camera_rotate(Camera* const camera, float angle, vec3 const axis) {
-
+    // float const similar = 0.001f;
+    //
+    // vec3 position_diff;
+    // vec3_sub(position_diff, position, camera->transform.position);
+    //
+    // if (vec3_len(position_diff) < similar)
+    //     return; // You cannot look at where you are!
+    //
+    // vec3 f;
+    // vec3_norm(f, position_diff);
+    // float cosTheta = vec3_mul_inner(forward, f); // dot
+    //
+    // float angle = acos(cosTheta);
+    // vec3 axis;
+    // vec3_mul_cross(axis, forward, f);
+    // vec3_norm(axis, axis);
+    //
+    // quat q; //quat_identity(q);
+    // quat_rotate(q, angle, axis);
+    // camera->transform.orientation[0] = q[0];
+    // camera->transform.orientation[1] = q[1];
+    // camera->transform.orientation[2] = q[2];
+    // camera->transform.orientation[3] = q[3];
 }
 
 // TODO: Does not work properly (all values in orientation go toward 0)
@@ -77,6 +73,7 @@ void Camera_offset_orientation(Camera* const camera, float yaw, float pitch) {
         orientation,
         camera->transform.orientation
     );
+    quat_norm(camera->transform.orientation, camera->transform.orientation);
 }
 
 void Camera_relative_directions(
