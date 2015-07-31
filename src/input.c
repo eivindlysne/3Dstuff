@@ -82,27 +82,21 @@ void Input_update(
     // vec3 vel = {0.2f, 0.2f, 0.2f};
 
     if (input->forward_key) {
-        camera->position[0] += camera->forward[0] * 0.2f;
-        camera->position[2] += camera->forward[2] * 0.2f;
-        // camera->transform.position[2] += 0.2f;
+        camera->transform.position[2] += 0.2f;
         // dir[0] += camera->forward[0];
         // dir[1] += camera->forward[1];
         // dir[2] += camera->forward[2];
     }
     if (input->back_key) {
-        camera->position[0] -= camera->forward[0] * 0.2f;
-        camera->position[2] -= camera->forward[2] * 0.2f;
-        // camera->transform.position[2] -= 0.2f;
+        camera->transform.position[2] -= 0.2f;
         // dir[0] -= camera->forward[0];
         // dir[1] -= camera->forward[1];
         // dir[2] -= camera->forward[2];
     }
     if (input->left_key) {
-        camera->position[0] -= 0.2f;
-        // camera->transform.position[0] -= 0.2f;
+        camera->transform.position[0] -= 0.2f;
     }
     if (input->right_key) {
-        camera->position[0] += 0.2f;
-        // camera->transform.position[0] += 0.2f;
+        camera->transform.position[0] += 0.2f;
     }
 }

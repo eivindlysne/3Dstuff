@@ -160,8 +160,8 @@ void Skybox_destroy(Skybox* skybox) {
 }
 
 void Skybox_update(Skybox* const skybox, Camera* const camera) {
-    skybox->transform.position[0] = camera->position[0];
-    skybox->transform.position[2] = camera->position[2];
+    skybox->transform.position[0] = camera->transform.position[0];
+    skybox->transform.position[2] = camera->transform.position[2];
 }
 
 void Skybox_draw(Skybox* const skybox, mat4x4 projection) {
