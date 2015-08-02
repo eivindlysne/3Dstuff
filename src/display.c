@@ -1,9 +1,49 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include <GL/glew.h>
+#include <SDL2/SDL.h>
+
 #include "display.h"
 
-Display* Display_init(char* title, int width, int height) {
+
+static void init_OpenGL(Display* const display) {
+
+    if (glewInit() != GLEW_OK) {
+        printf("Failed to initialize GLEW!");
+        return;
+    }
+
+#if 0
+    printf("----------------------------------------------------------------\n");
+    printf("Graphics Successfully Initialized\n");
+    printf("OpenGL Info\n");
+    printf("    Version: %s\n", glGetString(GL_VERSION));
+    printf("     Vendor: %s\n", glGetString(GL_VENDOR));
+    printf("   Renderer: %s\n", glGetString(GL_RENDERER));
+    printf("    Shading: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+    printf("----------------------------------------------------------------\n");
+#endif
+
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+    glViewport(0.0f, 0.0f, display->width, display->height);
+
+    glEnable(GL_TEXTURE_2D); // Not needed?
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); // Dunno if doin' anything
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    //glEnable(GL_CULL_FACE); // Cannot rotate?
+    //glCullFace(GL_BACK);
+}
+
+
+Display* Display_init(char* title, unsigned int width, unsigned int height) {
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("Failed to initialize SDL\n");
@@ -38,6 +78,11 @@ Display* Display_init(char* title, int width, int height) {
     Display* display = malloc(sizeof(Display));
     display->window = window;
     display->context = context;
+    display->width = width;
+    display->height = height;
+
+    init_OpenGL(display);
+
     return display;
 }
 

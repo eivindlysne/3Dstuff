@@ -7,9 +7,11 @@
 typedef struct {
     SDL_Window* window;
     SDL_GLContext context;
+    unsigned int width;
+    unsigned int height;
 } Display;
 
-Display* Display_init(char* title, int width, int height);
+Display* Display_init(char* title, unsigned int width, unsigned int height);
 
 void Display_destroy(Display* display);
 

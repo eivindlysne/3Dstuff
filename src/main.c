@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+// TODO: should be moved out later
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 
@@ -23,6 +24,7 @@
 #include "camera.h"
 #include "level.h"
 #include "skybox.h"
+#include "text.h"
 #include "timer.h"
 
 #define WINDOW_TITLE "Okapi"
@@ -32,34 +34,6 @@
 static const unsigned int frame_rate = 60;
 static const double frame_time = 1.0 / frame_rate;
 
-void init_OpenGL(void) {
-    if (glewInit() != GLEW_OK) {
-        printf("Failed to initialize GLEW!");
-        return;
-    }
-
-    printf("----------------------------------------------------------------\n");
-    printf("Graphics Successfully Initialized\n");
-    printf("OpenGL Info\n");
-    printf("    Version: %s\n", glGetString(GL_VERSION));
-    printf("     Vendor: %s\n", glGetString(GL_VENDOR));
-    printf("   Renderer: %s\n", glGetString(GL_RENDERER));
-    printf("    Shading: %s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
-    printf("----------------------------------------------------------------\n");
-
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
-    glViewport(0.0f, 0.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
-
-    glEnable(GL_TEXTURE_2D); // Not needed?
-    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); // Dunno if doin' anything
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    //glEnable(GL_CULL_FACE); // Cannot rotate?
-    //glCullFace(GL_BACK);
-}
 
 Mesh* init_test_mesh() {
     Vertex vertices[] = {
@@ -86,6 +60,28 @@ Texture* init_test_texture() {
     );
 }
 
+Shader* init_basic_shader() {
+    Shader* basic_shader = Shader_init("basic_vert.glsl", "basic_frag.glsl");
+    Shader_bind(basic_shader);
+    Shader_set_transform_location(basic_shader);
+    Shader_set_uniform_location(basic_shader, bfromcstr("projection"));
+    Shader_set_uniform_location(basic_shader, bfromcstr("diffuse"));
+    Shader_set_uniform_location(basic_shader, bfromcstr("normal"));
+    Shader_set_uniform_i(basic_shader, bfromcstr("diffuse"), 0);
+    Shader_set_uniform_i(basic_shader, bfromcstr("normal"), 1);
+    Shader_bind(NULL);
+    return basic_shader;
+}
+
+Shader* init_text_shader() {
+    Shader* shader = Shader_init("text_vert.glsl", "text_frag.glsl");
+    Shader_bind(shader);
+    Shader_set_uniform_location(shader, bfromcstr("font"));
+    Shader_set_uniform_i(shader, bfromcstr("font"), 0);
+    Shader_bind(NULL);
+    return shader;
+}
+
 void test_stuff() {
     #ifdef OS_LINUX
         printf("LINUUUX\n");
@@ -98,18 +94,12 @@ int main(int argc, char const *argv[]) {
     test_stuff();
 
     Display* display = Display_init(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
-    init_OpenGL();
 
     Input* input = Input_init();
-    Shader* basic_shader = Shader_init("basic_vert.glsl", "basic_frag.glsl");
-    Shader_bind(basic_shader);
-    Shader_set_transform_location(basic_shader);
-    Shader_set_uniform_location(basic_shader, bfromcstr("projection"));
-    Shader_set_uniform_location(basic_shader, bfromcstr("diffuse"));
-    Shader_set_uniform_location(basic_shader, bfromcstr("normal"));
-    Shader_set_uniform_i(basic_shader, bfromcstr("diffuse"), 0);
-    Shader_set_uniform_i(basic_shader, bfromcstr("normal"), 1);
-    Shader_bind(NULL);
+
+    Shader* basic_shader = init_basic_shader();
+
+    Shader* text_shader = init_text_shader();
 
     Transform transform = Transform_init_default();
     vec3 camera_position = {0.0f, 0.0f, 3.0f};
@@ -134,10 +124,12 @@ int main(int argc, char const *argv[]) {
         bfromcstr("res/textures/skybox/pos_x.png")
     );
 
+    TextMesh* text_mesh = TextMesh_init();
+    TextMesh_add(text_mesh, bfromcstr("H"));
+
     bool running = true;
-    printf("GETTING time\n");
+
     double last_time = get_time();
-    printf("GOT time\n");
     double frame_counter = 0.0;
     double unprocessed_time = 0.0;
     unsigned int frames = 0;
@@ -194,6 +186,10 @@ int main(int argc, char const *argv[]) {
             Mesh_draw(test_mesh);
             Shader_bind(NULL);
 
+            Shader_bind(text_shader);
+            TextMesh_draw(text_mesh);
+            Shader_bind(NULL);
+
             SDL_GL_SwapWindow(display->window);
 
             frames++;
@@ -208,7 +204,9 @@ int main(int argc, char const *argv[]) {
     Display_destroy(display);
     Input_destroy(input);
     Shader_destroy(basic_shader);
+    Shader_destroy(text_shader);
     Mesh_destroy(test_mesh);
+    TextMesh_destroy(text_mesh);
     Texture_destroy(test_texture);
     Camera_destroy(camera);
     //Level_destroy(level);
