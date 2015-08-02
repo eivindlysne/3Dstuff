@@ -17,4 +17,12 @@ typedef struct {
     Transform transform;
 } ModelInstance;
 
+ModelInstance* Model_init(
+    Mesh* const mesh,
+    Shader* const shader,
+    Texture* const texture
+);
+
+void Model_destroy(Model* model);
+
 #endif

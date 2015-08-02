@@ -45,6 +45,7 @@ TextMesh* TextMesh_init() {
 
     TextMesh* text_mesh = malloc(sizeof(TextMesh));
     text_mesh->strings = NULL;
+    text_mesh->size = 0;
 
     bstring font_file = bfromcstr("res/fonts/font.png");
     init_font(text_mesh, font_file);
@@ -98,9 +99,18 @@ void TextMesh_add(TextMesh* const text_mesh, bstring const text) {
     sb_push(text_mesh->strings, text);
 }
 
-void TextMesh_draw(TextMesh* const text_mesh) {
+void TextMesh_set(
+    TextMesh* const text_mesh,
+    bstring const text,
+    unsigned int index
+) {
+    bassign(text_mesh->strings[index], text);
+    bdestroy(text);
+}
 
+void TextMesh_update(TextMesh* const text_mesh) {
     Vertex* vertices = NULL;
+    float c_size = 32;
     double step = 1.0 / 16.0;
 
     unsigned int num_strings = sb_count(text_mesh->strings);
@@ -111,33 +121,40 @@ void TextMesh_draw(TextMesh* const text_mesh) {
             char c = bdata(s)[j];
             float uv_x = (c % 16) / 16.0f;
             float uv_y = (c / 16) / 16.0f;
-            Vertex v1 = {.position = {0,0,0}, .tex_coord = {uv_x, 1.0f - (uv_y + step)}};
-            Vertex v2 = {.position = {1,0,0}, .tex_coord = {uv_x + step, 1.0f - (uv_y + step)}};
-            Vertex v3 = {.position = {1,1,0}, .tex_coord = {uv_x + step, 1.0f - uv_y}};
-            Vertex v4 = {.position = {0,1,0}, .tex_coord = {uv_x, 1.0f - uv_y}};
+            float x = j * (c_size / 2.0);
 
-            // Vertex v1 = {.position = {0,0,0}, .tex_coord = {0.0, 0.0}};
-            // Vertex v2 = {.position = {1,0,0}, .tex_coord = {1.0, 0.0}};
-            // Vertex v3 = {.position = {1,1,0}, .tex_coord = {1.0, 1.0}};
-            // Vertex v4 = {.position = {0,1,0}, .tex_coord = {0.0, 1.0}};
+            Vertex v1 = {.position = {x,0,0}, .tex_coord = {uv_x, 1.0f - (uv_y + step)}};
+            Vertex v2 = {.position = {x+c_size,0,0}, .tex_coord = {uv_x + step, 1.0f - (uv_y + step)}};
+            Vertex v3 = {.position = {x+c_size,c_size,0}, .tex_coord = {uv_x + step, 1.0f - uv_y}};
+            Vertex v4 = {.position = {x,c_size,0}, .tex_coord = {uv_x, 1.0f - uv_y}};
 
             sb_push(vertices, v1);
             sb_push(vertices, v2);
             sb_push(vertices, v3);
             sb_push(vertices, v4);
+
+            text_mesh->size += 4;
         }
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, text_mesh->vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * sb_count(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        sizeof(Vertex) * sb_count(vertices),
+        vertices,
+        GL_DYNAMIC_DRAW
+    );
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     sb_free(vertices);
+}
+
+void TextMesh_draw(TextMesh* const text_mesh) {
 
     glBindTexture(GL_TEXTURE_2D, text_mesh->font_tex);
 
     glBindVertexArray(text_mesh->vao);
-    glDrawArrays(GL_QUADS, 0, 4);
+    glDrawArrays(GL_QUADS, 0, text_mesh->size);
     glBindVertexArray(0);
 }
 

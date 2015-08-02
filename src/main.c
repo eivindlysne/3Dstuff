@@ -1,9 +1,3 @@
-// #if defined(__linux__)
-//     #define OS_LINUX
-// #else
-//     #define OS_OTHER
-// #endif
-
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -37,14 +31,46 @@ static const double frame_time = 1.0 / frame_rate;
 
 Mesh* init_test_mesh() {
     Vertex vertices[] = {
-        {.position = {-0.5, -0.5, 0.0f}, .tex_coord = {0.0, 0.0}},
-        {.position = { 0.5, -0.5, 0.0f}, .tex_coord = {1.0, 0.0}},
-        {.position = { 0.5,  0.5, 0.0f}, .tex_coord = {1.0, 1.0}},
-        {.position = {-0.5,  0.5, 0.0f}, .tex_coord = {0.0, 1.0}},
+        {.position = {-0.5, -1.0, 0.0f}, .tex_coord = {0.0, 0.0}},
+        {.position = { 0.5, -1.0, 0.0f}, .tex_coord = {1.0, 0.0}},
+        {.position = { 0.5,  0.0, 0.0f}, .tex_coord = {1.0, 1.0}},
+        {.position = {-0.5,  0.0, 0.0f}, .tex_coord = {0.0, 1.0}},
     };
     unsigned short indices[] = {
         0, 2, 3, 1, 2, 0,
     };
+    return Mesh_init(
+        vertices,
+        sizeof(vertices) / sizeof(Vertex),
+        indices,
+        sizeof(indices) / sizeof(unsigned short)
+    );
+}
+
+Mesh* init_floor_mesh() {
+    unsigned int num_tiles = 256;
+    int range = sqrt(num_tiles) / 2;
+    float size = 1.0f; float plane = -1.0f;
+
+    Vertex vertices[num_tiles * 4];
+    unsigned short indices[num_tiles * 6];
+
+    unsigned int vx = 0, ix = 0;
+    for (int i = -range; i < range; i++) {
+        for (int j = -range; j < range; j++) {
+            vertices[vx] = (Vertex) {.position = {size*i, plane, size*j}, .tex_coord = {0.0, 0.0}};
+            vertices[vx + 1] = (Vertex) {.position = {size*i+size, plane, size*j}, .tex_coord = {1.0, 0.0}};
+            vertices[vx + 2] = (Vertex) {.position = {size*i+size, plane, size*j+size}, .tex_coord = {1.0, 1.0}};
+            vertices[vx + 3] = (Vertex) {.position = {size*i, plane, size*j+size}, .tex_coord = {0.0, 1.0}};
+            indices[ix] = vx;
+            indices[ix + 1] = vx + 2;
+            indices[ix + 2] = vx + 3;
+            indices[ix + 3] = vx + 1;
+            indices[ix + 4] = vx + 2;
+            indices[ix + 5] = vx;
+            vx += 4; ix += 6;
+        }
+    }
     return Mesh_init(
         vertices,
         sizeof(vertices) / sizeof(Vertex),
@@ -76,17 +102,14 @@ Shader* init_basic_shader() {
 Shader* init_text_shader() {
     Shader* shader = Shader_init("text_vert.glsl", "text_frag.glsl");
     Shader_bind(shader);
+    Shader_set_uniform_location(shader, bfromcstr("projection"));
     Shader_set_uniform_location(shader, bfromcstr("font"));
     Shader_set_uniform_i(shader, bfromcstr("font"), 0);
     Shader_bind(NULL);
     return shader;
 }
 
-void test_stuff() {
-    #ifdef OS_LINUX
-        printf("LINUUUX\n");
-    #endif
-}
+void test_stuff() {}
 
 
 int main(int argc, char const *argv[]) {
@@ -112,9 +135,6 @@ int main(int argc, char const *argv[]) {
     );
     //Camera_look_at(camera, (vec3) {0,0,0}, G_FORWARD); Does not work
 
-    Mesh* test_mesh = init_test_mesh();
-    Texture* test_texture = init_test_texture();
-    //Level* level = Level_init(NULL);
     Skybox* skybox = Skybox_init(
         bfromcstr("res/textures/skybox/neg_z.png"),
         bfromcstr("res/textures/skybox/pos_z.png"),
@@ -124,8 +144,13 @@ int main(int argc, char const *argv[]) {
         bfromcstr("res/textures/skybox/pos_x.png")
     );
 
+    Mesh* test_mesh = init_test_mesh();
+    Mesh* floor_mesh = init_floor_mesh();
+
+    Texture* test_texture = init_test_texture();
+
     TextMesh* text_mesh = TextMesh_init();
-    TextMesh_add(text_mesh, bfromcstr("H"));
+    TextMesh_add(text_mesh, bfromcstr("FPS: 0"));
 
     bool running = true;
 
@@ -148,7 +173,10 @@ int main(int argc, char const *argv[]) {
         // Display FPS every second
         if (frame_counter >= 1.0) {
 
-            printf("FPS: %u\n", frames);
+            int buffer_size = 9;
+            char buffer[buffer_size];
+            snprintf(buffer, buffer_size, "FPS: %u", frames);
+            TextMesh_set(text_mesh, bfromcstr(buffer), 0);
 
             frames = 0;
             frame_counter = 0;
@@ -162,6 +190,7 @@ int main(int argc, char const *argv[]) {
             // Update
             Camera_update(camera, input);
             Skybox_update(skybox, camera);
+            TextMesh_update(text_mesh);
 
             render = true;
 
@@ -184,9 +213,21 @@ int main(int argc, char const *argv[]) {
 
             Texture_bind(test_texture);
             Mesh_draw(test_mesh);
+            Mesh_draw(floor_mesh);
             Shader_bind(NULL);
 
             Shader_bind(text_shader);
+            mat4x4_identity(projection);
+            mat4x4_ortho(
+                projection,
+                0.0f,
+                WINDOW_WIDTH,
+                0.0f,
+                WINDOW_HEIGHT,
+                1.0f,
+                -1.0f
+            );
+            Shader_set_uniform_mat4x4(text_shader, bfromcstr("projection"), projection);
             TextMesh_draw(text_mesh);
             Shader_bind(NULL);
 
@@ -206,10 +247,10 @@ int main(int argc, char const *argv[]) {
     Shader_destroy(basic_shader);
     Shader_destroy(text_shader);
     Mesh_destroy(test_mesh);
+    Mesh_destroy(floor_mesh);
     TextMesh_destroy(text_mesh);
     Texture_destroy(test_texture);
     Camera_destroy(camera);
-    //Level_destroy(level);
     Skybox_destroy(skybox);
 
     return 0;

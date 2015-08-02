@@ -33,7 +33,7 @@ static void init_OpenGL(Display* const display) {
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); // Dunno if doin' anything
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    glDepthFunc(GL_LEQUAL);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -65,13 +65,13 @@ Display* Display_init(char* title, unsigned int width, unsigned int height) {
         SDL_WINDOW_OPENGL
     );
 
-    //SDL_SetRelativeMouseMode(true); // grab mouse
-
     SDL_WarpMouseInWindow(
         window,
         (float) width / 2.f,
         (float) height / 2.f
     );
+
+    //SDL_SetRelativeMouseMode(true); // grab mouse
 
     SDL_GLContext context = SDL_GL_CreateContext(window);
 
