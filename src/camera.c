@@ -26,7 +26,47 @@ void Camera_destroy(Camera* const camera) {
     free(camera);
 }
 
-// TODO: Might need
+void Camera_update(Camera* const camera, Input* const input) {
+
+    Camera_offset_orientation(
+        camera,
+        toRadians((-input->mouse_dx * input->mouse_sensitivity)),
+        toRadians((-input->mouse_dy * input->mouse_sensitivity))
+    );
+
+    // TODO: Delta time
+    vec3 dir = {0.0f, 0.0f, 0.0f};
+    float vel = 0.2f;
+    vec3 forward, backward, left, right;
+    Camera_relative_directions(camera, forward, backward, left, right);
+
+    if (input->forward_key) {
+        vec3 f = {forward[0], 0.0f, forward[2]};
+        vec3_norm(f, f);
+        vec3_add(dir, dir, f);
+    }
+    if (input->back_key) {
+        vec3 b = {backward[0], 0.0f, backward[2]};
+        vec3_norm(b, b);
+        vec3_add(dir, dir, b);
+    }
+    if (input->left_key) {
+        vec3_add(dir, dir, left);
+    }
+    if (input->right_key) {
+        vec3_add(dir, dir, right);
+    }
+
+    if (vec3_len(dir) > 0.0f) {
+        vec3_norm(dir, dir);
+    }
+
+    vec3 movement;
+    vec3_scale(movement, dir, vel);
+    vec3_add(camera->transform.position, camera->transform.position, movement);
+}
+
+// TODO: Might need later
 void Camera_look_at(Camera* const camera, vec3 const position, vec3 const forward) {
 
     // float const similar = 0.001f;
@@ -54,7 +94,6 @@ void Camera_look_at(Camera* const camera, vec3 const position, vec3 const forwar
     // camera->transform.orientation[3] = q[3];
 }
 
-// TODO: Does not work properly (all values in orientation go toward 0)
 void Camera_offset_orientation(Camera* const camera, float yaw, float pitch) {
 
     quat pitch_rotation, yaw_rotation;

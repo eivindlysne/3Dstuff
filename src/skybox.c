@@ -166,12 +166,6 @@ void Skybox_update(Skybox* const skybox, Camera* const camera) {
 
 void Skybox_draw(Skybox* const skybox, mat4x4 projection) {
 
-    // mat4x4 model;
-    // Transform_model_matrix(&skybox->transform, model);
-    //
-    // mat4x4 mvp;
-    // mat4x4_mul(mvp, projection, model);
-
     glDepthMask(GL_FALSE);
 
     Shader_bind(skybox->shader);

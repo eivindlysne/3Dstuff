@@ -1,6 +1,11 @@
+// #if defined(__linux__)
+//     #define OS_LINUX
+// #else
+//     #define OS_OTHER
+// #endif
+
 #include <stdio.h>
 #include <stdbool.h>
-#include <float.h> // Only for FLT_MAX
 
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
@@ -18,12 +23,14 @@
 #include "camera.h"
 #include "level.h"
 #include "skybox.h"
+#include "timer.h"
 
 #define WINDOW_TITLE "Okapi"
 #define WINDOW_WIDTH 960
 #define WINDOW_HEIGHT 540
-#define FPS 60
-#define invert_y(y) (WINDOW_HEIGHT - y)
+
+static const unsigned int frame_rate = 60;
+static const double frame_time = 1.0 / frame_rate;
 
 void init_OpenGL(void) {
     if (glewInit() != GLEW_OK) {
@@ -44,9 +51,12 @@ void init_OpenGL(void) {
 
     glViewport(0.0f, 0.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_TEXTURE_2D); // Not needed?
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS); // Dunno if doin' anything
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
     //glEnable(GL_CULL_FACE); // Cannot rotate?
     //glCullFace(GL_BACK);
 }
@@ -77,11 +87,9 @@ Texture* init_test_texture() {
 }
 
 void test_stuff() {
-
-    // vec3 v1 = {0,1,1};
-    // vec3 v2;
-    // vec3_norm(v2, v1);
-    // printf("(%f,%f,%f)\n", v2[0], v2[1], v2[2]);
+    #ifdef OS_LINUX
+        printf("LINUUUX\n");
+    #endif
 }
 
 
@@ -127,36 +135,74 @@ int main(int argc, char const *argv[]) {
     );
 
     bool running = true;
+    printf("GETTING time\n");
+    double last_time = get_time();
+    printf("GOT time\n");
+    double frame_counter = 0.0;
+    double unprocessed_time = 0.0;
+    unsigned int frames = 0;
+
     while (running) {
 
-        float t = SDL_GetTicks();
+        bool render = false;
 
-        // Update stuff
-        Input_update(input, display, camera, &running);
-        Skybox_update(skybox, camera);
+        double start_time = get_time();
+        double elapsed_time = start_time - last_time;
+        last_time = start_time;
 
-        // Draw stuff
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        unprocessed_time += elapsed_time;
+        frame_counter += elapsed_time;
 
-        mat4x4 projection;
-        Camera_view_projection(camera, projection);
+        // Display FPS every second
+        if (frame_counter >= 1.0) {
 
-        Skybox_draw(skybox, projection);
+            printf("FPS: %u\n", frames);
 
-        Shader_bind(basic_shader);
-        Shader_set_uniform_mat4x4(basic_shader, bfromcstr("projection"), projection);
-        // float angle = toRadians(t * 0.2f);
-        // vec3 axis;
-        // vec3_norm(axis, (vec3) {1, 1, 1});
-        // quat_rotate(transform.orientation, angle, axis);
+            frames = 0;
+            frame_counter = 0;
+        }
 
-        Shader_set_transform(basic_shader, &transform);
+        while (unprocessed_time > frame_time) {
 
-        Texture_bind(test_texture);
-        Mesh_draw(test_mesh);
-        Shader_bind(NULL);
+            // Process input
+            Input_update(input, display, &running);
 
-        SDL_GL_SwapWindow(display->window);
+            // Update
+            Camera_update(camera, input);
+            Skybox_update(skybox, camera);
+
+            render = true;
+
+            unprocessed_time -= frame_time;
+        }
+
+        if (render) {
+            // Render
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            mat4x4 projection;
+            Camera_view_projection(camera, projection);
+
+            Skybox_draw(skybox, projection);
+
+            Shader_bind(basic_shader);
+            Shader_set_uniform_mat4x4(basic_shader, bfromcstr("projection"), projection);
+
+            Shader_set_transform(basic_shader, &transform);
+
+            Texture_bind(test_texture);
+            Mesh_draw(test_mesh);
+            Shader_bind(NULL);
+
+            SDL_GL_SwapWindow(display->window);
+
+            frames++;
+        } else {
+            // Sleep one ms, not Reliable
+            SDL_Delay(1);
+            //printf("Slept");
+        }
+
     }
 
     Display_destroy(display);

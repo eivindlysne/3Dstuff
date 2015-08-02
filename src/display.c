@@ -26,7 +26,6 @@ Display* Display_init(char* title, int width, int height) {
     );
 
     //SDL_SetRelativeMouseMode(true); // grab mouse
-    //SDL_ShowCursor(SDL_DISABLE);
 
     SDL_WarpMouseInWindow(
         window,

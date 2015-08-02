@@ -4,15 +4,16 @@
 #include <stdbool.h>
 
 #include "display.h"
-#include "camera.h"
+
 
 typedef struct {
     bool forward_key;
     bool back_key;
     bool left_key;
     bool right_key;
-    int mouse_x;
-    int mouse_y;
+    float mouse_dx;
+    float mouse_dy;
+    float mouse_sensitivity;
 } Input;
 
 Input* Input_init();
@@ -22,7 +23,6 @@ void Input_destroy(Input* input);
 void Input_update(
     Input* const input,
     Display* const display,
-    Camera* const camera,
     bool* const running
 );
 

@@ -6,6 +6,7 @@
 #include "linmath/linmath.h"
 
 #include "transform.h"
+#include "input.h"
 
 static vec3 G_FORWARD  = { 0.0f,  0.0f, -1.0f};
 static vec3 G_BACKWARD = { 0.0f,  0.0f,  1.0f};
@@ -28,6 +29,8 @@ Camera* Camera_init(
 );
 
 void Camera_destroy(Camera* const camera);
+
+void Camera_update(Camera* const camera, Input* const input);
 
 void Camera_look_at(Camera* const camera, vec3 const position, vec3 const up);
 

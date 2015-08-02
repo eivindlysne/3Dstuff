@@ -12,8 +12,9 @@ Input* Input_init() {
     input->back_key = false;
     input->left_key = false;
     input->right_key = false;
-    input->mouse_x = 0;
-    input->mouse_y = 0;
+    input->mouse_dx = 0.f;
+    input->mouse_dy = 0.f;
+    input->mouse_sensitivity = 0.05f;
 
     return input;
 }
@@ -25,7 +26,6 @@ void Input_destroy(Input* input) {
 void Input_update(
     Input* const input,
     Display* const display,
-    Camera* const camera,
     bool* const running
 ) {
 
@@ -72,52 +72,13 @@ void Input_update(
         }
     }
 
-    const float mouse_sensitivity = 0.05f;
     const float center_x = 960.f / 2.f;
     const float center_y = 540.f / 2.f;
 
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
-    float mouse_dx = mouse_x - center_x;
-    float mouse_dy = mouse_y - center_y;
-
-    Camera_offset_orientation(
-        camera,
-        mouse_sensitivity * toRadians((-mouse_dx)),
-        mouse_sensitivity * toRadians((-mouse_dy))
-    );
+    input->mouse_dx = mouse_x - center_x;
+    input->mouse_dy = mouse_y - center_y;
 
     //SDL_WarpMouseInWindow(display->window, center_x, center_y);
-
-    // TODO: Move input "handling"
-    // TODO: Delta time
-    vec3 dir = {0.0f, 0.0f, 0.0f};
-    float vel = 0.2f;
-    vec3 forward, backward, left, right;
-    Camera_relative_directions(camera, forward, backward, left, right);
-
-    if (input->forward_key) {
-        vec3 f = {forward[0], 0.0f, forward[2]};
-        vec3_norm(f, f);
-        vec3_add(dir, dir, f);
-    }
-    if (input->back_key) {
-        vec3 b = {backward[0], 0.0f, backward[2]};
-        vec3_norm(b, b);
-        vec3_add(dir, dir, b);
-    }
-    if (input->left_key) {
-        vec3_add(dir, dir, left);
-    }
-    if (input->right_key) {
-        vec3_add(dir, dir, right);
-    }
-
-    if (vec3_len(dir) > 0.0f) {
-        vec3_norm(dir, dir);
-    }
-
-    vec3 movement;
-    vec3_scale(movement, dir, vel);
-    vec3_add(camera->transform.position, camera->transform.position, movement);
 }
